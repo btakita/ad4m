@@ -28,7 +28,7 @@ pub fn initialize_from_db() {
         let p = PerspectiveInstance::new(handle.clone(), None);
         tokio::spawn(p.clone().start_background_tasks());
         perspectives.insert(
-            handle.uuid.clone(), 
+            handle.uuid.clone(),
             RwLock::new(p)
         );
     }
@@ -53,11 +53,11 @@ pub async fn add_perspective(handle: PerspectiveHandle, created_from_join: Optio
     {
         let mut perspectives = PERSPECTIVES.write().unwrap();
         perspectives.insert(
-            handle.uuid.clone(), 
+            handle.uuid.clone(),
             RwLock::new(p)
         );
     }
-    
+
     get_global_pubsub()
         .await
         .publish(
@@ -128,7 +128,7 @@ pub async fn remove_perspective(uuid: &str) -> Option<PerspectiveInstance> {
         .remove_perspective(uuid) {
             log::error!("Error removing perspective from db: {}", e);
         }
-    
+
     let removed_instance = {
         let mut perspectives = PERSPECTIVES.write().unwrap();
         perspectives.remove(uuid).and_then(|instance_lock| instance_lock.into_inner().ok())
@@ -166,7 +166,7 @@ async fn perspective_by_link_language(language_address: String) -> Option<Perspe
             if nh.data.link_language == language_address {
                 return Some(perspective);
             }
-        }   
+        }
     }
     None
 }
@@ -203,7 +203,7 @@ pub async fn handle_telepresence_signal_from_link_language_impl(signal: Perspect
 
 #[cfg(test)]
 mod tests {
-    
+
 
     use super::*;
 
@@ -234,13 +234,13 @@ mod tests {
         add_perspective(handle2.clone(), None).await.expect("Failed to add perspective");
         // Test the get_all_perspectives function
         let perspectives = all_perspectives();
-        
+
         // Assert expected results
         assert_eq!(perspectives.len(), 2);
 
         assert!(find_perspective_by_uuid(&perspectives, &handle1.uuid).await.is_some());
         assert!(find_perspective_by_uuid(&perspectives, &handle2.uuid).await.is_some());
-        
+
         let p1 = find_perspective_by_uuid(&perspectives, &handle1.uuid)
             .await
             .expect("Failed to find perspective by uuid");

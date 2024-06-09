@@ -1114,7 +1114,7 @@ impl Mutation {
         Ad4mDb::with_global_instance(|db| {
             db.update_notification(id, &notification)
         })?;
-        
+
         Ok(true)
     }
 
@@ -1145,7 +1145,7 @@ impl Mutation {
         Ad4mDb::with_global_instance(|db| {
             db.update_notification(id, &notification)
         }).map_err(|e| e.to_string())?;
-            
+
         Ok(true)
     }
 }

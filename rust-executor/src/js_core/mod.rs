@@ -1,23 +1,30 @@
+use std::env::current_dir;
+use std::sync::Arc;
+
 use ::futures::Future;
 use deno_core::anyhow::anyhow;
 use deno_core::error::AnyError;
 use deno_core::resolve_url_or_path;
+use deno_runtime::{BootstrapOptions, permissions::PermissionsContainer};
 use deno_runtime::worker::MainWorker;
-use deno_runtime::{permissions::PermissionsContainer, BootstrapOptions};
 use holochain::prelude::{ExternIO, Signal};
+use log::{error, info};
 use once_cell::sync::Lazy;
-use std::env::current_dir;
-use std::sync::Arc;
 use tokio::runtime::Builder;
-use tokio::sync::broadcast;
-use tokio::sync::Mutex as TokioMutex;
 use tokio::sync::{
     broadcast::{Receiver, Sender},
     mpsc::{self, UnboundedReceiver, UnboundedSender},
-    oneshot
+    oneshot,
 };
-use log::{error, info};
+use tokio::sync::broadcast;
+use tokio::sync::Mutex as TokioMutex;
+
 use options::{main_module_url, main_worker_options};
+
+use crate::Ad4mConfig;
+use crate::holochain_service::maybe_get_holochain_service;
+
+use self::futures::{EventLoopFuture, SmartGlobalVariableFuture};
 
 mod agent_extension;
 mod futures;
@@ -30,10 +37,6 @@ mod utils_extension;
 mod wallet_extension;
 mod utils;
 
-use self::futures::{EventLoopFuture, SmartGlobalVariableFuture};
-use crate::holochain_service::maybe_get_holochain_service;
-use crate::Ad4mConfig;
-
 pub(crate) static JS_CORE_HANDLE: Lazy<Arc<TokioMutex<Option<JsCoreHandle>>>> =
     Lazy::new(|| Arc::new(TokioMutex::new(None)));
 
@@ -41,7 +44,7 @@ pub struct JsCoreHandle {
     rx: Receiver<JsCoreResponse>,
     tx: UnboundedSender<JsCoreRequest>,
     tx_module_load: UnboundedSender<JsCoreRequest>,
-    broadcast_tx: Sender<JsCoreResponse>
+    broadcast_tx: Sender<JsCoreResponse>,
 }
 
 impl Clone for JsCoreHandle {
@@ -50,7 +53,7 @@ impl Clone for JsCoreHandle {
             rx: self.broadcast_tx.subscribe(),
             tx: self.tx.clone(),
             tx_module_load: self.tx_module_load.clone(),
-            broadcast_tx: self.broadcast_tx.clone()
+            broadcast_tx: self.broadcast_tx.clone(),
         }
     }
 }
@@ -68,7 +71,7 @@ impl JsCoreHandle {
             .send(JsCoreRequest {
                 script,
                 id: id.clone(),
-                response_tx
+                response_tx,
             })
             .expect("couldn't send on channel... it is likely that the main worker thread has crashed...");
 
@@ -88,7 +91,7 @@ impl JsCoreHandle {
             .send(JsCoreRequest {
                 script: path,
                 id: id.clone(),
-                response_tx
+                response_tx,
             })
             .expect("couldn't send on channel... it is likely that the main worker thread has crashed...");
 
@@ -105,7 +108,7 @@ struct JsCoreRequest {
     script: String,
     #[allow(dead_code)]
     id: String,
-    response_tx: oneshot::Sender<JsCoreResponse>
+    response_tx: oneshot::Sender<JsCoreResponse>,
 }
 
 #[derive(Debug, Clone)]
@@ -176,7 +179,7 @@ impl JsCore {
 
     async fn execute_async_smart(
         &self,
-        script: String
+        script: String,
     ) -> Result<SmartGlobalVariableFuture, AnyError> {
         let mut worker = self.worker.lock().await;
         let wrapped_script = format!(
@@ -199,7 +202,7 @@ impl JsCore {
             loop {
                 //info!("Execution slot loop running");
                 let mut maybe_request = rx.lock().await;
-                if let Some(request) = maybe_request.recv().await  {
+                if let Some(request) = maybe_request.recv().await {
                     //info!("Got request: {:?}", request);
                     let script = request.script.clone();
                     let js_core_cloned = js_core.clone();
@@ -354,7 +357,7 @@ impl JsCore {
                                                     }
                                                 }
                                             });
-                                        },
+                                        }
                                         Signal::System(_) => {
                                             // Handle the received signal here
                                             info!("Received system signal");
@@ -397,7 +400,7 @@ impl JsCore {
             rx: rx_outside,
             tx: tx_outside,
             tx_module_load: tx_outside_loader,
-            broadcast_tx: tx_inside_clone
+            broadcast_tx: tx_inside_clone,
         };
 
         //Set the JsCoreHandle to a global object so we can use it inside of deno op calls

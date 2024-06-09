@@ -136,9 +136,9 @@ pub struct PerspectiveInstance {
 
 impl PerspectiveInstance {
     pub fn new(
-            handle: PerspectiveHandle,
-            created_from_join: Option<bool>,
-        ) -> Self {
+        handle: PerspectiveHandle,
+        created_from_join: Option<bool>,
+    ) -> Self {
         PerspectiveInstance {
             persisted: Arc::new(Mutex::new(handle.clone())),
 
@@ -172,7 +172,7 @@ impl PerspectiveInstance {
             if self.link_language.lock().await.is_none() && self.persisted.lock().await.neighbourhood.is_some() {
                 let nh = self.persisted.lock().await.neighbourhood.as_ref().expect("must be some").clone();
 
-                match  LanguageController::language_by_address(nh.data.link_language.clone()).await {
+                match LanguageController::language_by_address(nh.data.link_language.clone()).await {
                     Ok(Some(language)) => {
                         {
                             let mut link_language_guard = self.link_language.lock().await;
@@ -183,11 +183,11 @@ impl PerspectiveInstance {
                         }
                         self.update_perspective_state_log_error(PerspectiveState::LinkLanguageInstalledButNotSynced).await;
                         break;
-                    },
+                    }
                     Ok(None) => {
                         log::debug!("Link language {} not installed yet, retrying in 5 seconds", nh.data.link_language.clone());
                         self.update_perspective_state_log_error(PerspectiveState::LinkLanguageFailedToInstall).await;
-                    },
+                    }
                     Err(e) => {
                         log::error!("Error when calling language_by_address: {:?}", e);
                         self.update_perspective_state_log_error(PerspectiveState::LinkLanguageFailedToInstall).await;
@@ -238,14 +238,14 @@ impl PerspectiveInstance {
                             Ok(Some(_)) => {
                                 Ad4mDb::with_global_instance(|db| db.clear_pending_diffs(&uuid)).map_err(|e| anyhow!("clear_pending_diffs error: {}",e))?;
                                 Ok(())
-                            },
+                            }
                             Ok(None) => {
                                 Err(anyhow!("Error committing pending diffs. No diff returned."))
-                            },
+                            }
                             Err(e) => {
                                 Err(anyhow!("Error committing pending diffs: {:?}", e))
                             }
-                        }
+                        };
                     }
                 }
                 Ok(())
@@ -279,10 +279,10 @@ impl PerspectiveInstance {
             for (local_link, _) in &local_links {
                 if !remote_links.iter().any(|e|
                     e.author == local_link.author &&
-                    e.timestamp == local_link.timestamp &&
-                    e.data.source == local_link.data.source &&
-                    e.data.target == local_link.data.target &&
-                    e.data.predicate == local_link.data.predicate
+                        e.timestamp == local_link.timestamp &&
+                        e.data.source == local_link.data.source &&
+                        e.data.target == local_link.data.target &&
+                        e.data.predicate == local_link.data.predicate
                 ) {
                     links_to_commit.push(local_link.clone());
                 }
@@ -338,7 +338,7 @@ impl PerspectiveInstance {
     pub async fn commit(&self, diff: &PerspectiveDiff) -> Result<Option<String>, AnyError> {
         let handle = self.persisted.lock().await.clone();
         if handle.neighbourhood.is_none() {
-            return Ok(None)
+            return Ok(None);
         }
 
 
@@ -395,7 +395,7 @@ impl PerspectiveInstance {
 
         let decorated_diff = DecoratedPerspectiveDiff {
             additions: diff.additions.iter().map(|link| DecoratedLinkExpression::from((link.clone(), LinkStatus::Shared))).collect(),
-            removals: diff.removals.iter().map(|link| DecoratedLinkExpression::from((link.clone(), LinkStatus::Shared))).collect()
+            removals: diff.removals.iter().map(|link| DecoratedLinkExpression::from((link.clone(), LinkStatus::Shared))).collect(),
         };
 
         self.spawn_prolog_facts_update(notification_snapshot_before, decorated_diff.clone());
@@ -559,7 +559,7 @@ impl PerspectiveInstance {
                     handle.name.clone().unwrap_or("<no name>".to_string()),
                     handle.uuid,
                     old_link
-                )))
+                )));
             }
         };
 
@@ -635,7 +635,7 @@ impl PerspectiveInstance {
         } else if let Some(predicate) = &query.predicate {
             Ad4mDb::with_global_instance(|db| {
                 Ok::<Vec<(LinkExpression, LinkStatus)>, AnyError>(
-                    db.get_all_links(&  uuid)?
+                    db.get_all_links(&uuid)?
                         .into_iter()
                         .filter(|(link, _)| link.data.predicate.as_ref() == Some(predicate))
                         .collect::<Vec<(LinkExpression, LinkStatus)>>()
@@ -719,7 +719,6 @@ impl PerspectiveInstance {
             let b_time = DateTime::parse_from_rfc3339(&b.timestamp).unwrap();
             if reverse {
                 b_time.cmp(&a_time)
-
             } else {
                 a_time.cmp(&b_time)
             }
@@ -737,7 +736,6 @@ impl PerspectiveInstance {
             })
             .collect())
     }
-
 
 
     /// Adds the given Social DNA code to the perspective's SDNA code
@@ -768,7 +766,6 @@ impl PerspectiveInstance {
         if let Err(_) = Literal::from_url(sdna_code.clone()) {
             sdna_code = Literal::from_string(sdna_code).to_url().expect("just initialized Literal couldn't be turned into URL");
         }
-
 
 
         if links.is_empty() {
@@ -864,7 +861,7 @@ impl PerspectiveInstance {
                 );
             } else {
                 self_clone.pubsub_publish_diff(diff).await;
-                let after =  self_clone.notification_trigger_snapshot().await;
+                let after = self_clone.notification_trigger_snapshot().await;
                 let new_matches = Self::subtract_before_notification_matches(before, after);
                 Self::publish_notification_matches(uuid, new_matches).await;
             }
@@ -949,7 +946,7 @@ impl PerspectiveInstance {
         }
     }
 
-    async fn update_prolog_engine_facts(&self) -> Result<(), AnyError>{
+    async fn update_prolog_engine_facts(&self) -> Result<(), AnyError> {
         let prolog_engine_mutex = self.prolog_engine.lock().await;
         let prolog_engine_option_ref = prolog_engine_mutex.as_ref();
         let prolog_engine = prolog_engine_option_ref.as_ref().expect("Must be some since we initialized the engine above");
@@ -1017,7 +1014,7 @@ impl PerspectiveInstance {
     pub async fn send_signal(
         &self,
         remote_agent_did: String,
-        payload: PerspectiveExpression
+        payload: PerspectiveExpression,
     ) -> Result<(), AnyError> {
         let mut link_language_guard = self.link_language.lock().await;
         if let Some(link_language) = link_language_guard.as_mut() {
@@ -1029,7 +1026,7 @@ impl PerspectiveInstance {
 
     pub async fn send_broadcast(
         &self,
-        payload: PerspectiveExpression
+        payload: PerspectiveExpression,
     ) -> Result<(), AnyError> {
         let mut link_language_guard = self.link_language.lock().await;
         if let Some(link_language) = link_language_guard.as_mut() {
@@ -1078,54 +1075,54 @@ impl PerspectiveInstance {
 
             match command.action {
                 Action::AddLink => {
-                    self.add_link(Link{ source, predicate, target }, status).await?;
+                    self.add_link(Link { source, predicate, target }, status).await?;
                 }
                 Action::RemoveLink => {
-                    let link_expressions = self.get_links(&LinkQuery{
-                        source:Some(source),
+                    let link_expressions = self.get_links(&LinkQuery {
+                        source: Some(source),
                         predicate,
                         target: Some(target),
                         from_date: None,
                         until_date: None,
-                        limit: None
+                        limit: None,
                     }).await?;
                     for link_expression in link_expressions {
                         self.remove_link(link_expression.into()).await?;
                     }
                 }
                 Action::SetSingleTarget => {
-                    let link_expressions = self.get_links(&LinkQuery{
-                        source:Some(source.clone()),
+                    let link_expressions = self.get_links(&LinkQuery {
+                        source: Some(source.clone()),
                         predicate: predicate.clone(),
                         target: None,
                         from_date: None,
                         until_date: None,
-                        limit: None
+                        limit: None,
                     }).await?;
                     for link_expression in link_expressions {
                         self.remove_link(link_expression.into()).await?;
                     }
-                    self.add_link(Link{ source, predicate, target }, status).await?;
+                    self.add_link(Link { source, predicate, target }, status).await?;
                 }
                 Action::CollectionSetter => {
-                    let link_expressions = self.get_links(&LinkQuery{
-                        source:Some(source.clone()),
+                    let link_expressions = self.get_links(&LinkQuery {
+                        source: Some(source.clone()),
                         predicate: predicate.clone(),
                         target: None,
                         from_date: None,
                         until_date: None,
-                        limit: None
+                        limit: None,
                     }).await?;
                     for link_expression in link_expressions {
                         self.remove_link(link_expression.into()).await?;
                     }
                     self.add_links(
-                        parameters.iter().map(|p| Link{
+                        parameters.iter().map(|p| Link {
                             source: source.clone(),
                             predicate: predicate.clone(),
-                            target: jsvalue_to_string(&p.value)
+                            target: jsvalue_to_string(&p.value),
                         }).collect(),
-                        status
+                        status,
                     ).await?;
                 }
             }
@@ -1163,7 +1160,7 @@ impl PerspectiveInstance {
         Ok(())
     }
 
-    pub async fn get_subject_data(&mut self, subject_class: SubjectClassOption, base_expression: String) -> Result<String, AnyError>{
+    pub async fn get_subject_data(&mut self, subject_class: SubjectClassOption, base_expression: String) -> Result<String, AnyError> {
         let mut object: HashMap<String, String> = HashMap::new();
 
         let class_name = self.subject_class_option_to_class_name(subject_class).await?;
@@ -1192,9 +1189,9 @@ impl PerspectiveInstance {
 
                             if let Some(ref mut js) = *lock {
                                 let result = js.execute(format!(
-                                        r#"JSON.stringify(await core.callResolver("Query", "expression", {{ url: "{}" }}))"#,
-                                        s
-                                    ))
+                                    r#"JSON.stringify(await core.callResolver("Query", "expression", {{ url: "{}" }}))"#,
+                                    s
+                                ))
                                     .await?;
 
                                 let result: JsResultType<Option<ExpressionRendered>> = serde_json::from_str(&result)?;
@@ -1206,7 +1203,7 @@ impl PerspectiveInstance {
                             } else {
                                 prolog_value_to_json_string(property_value.clone())
                             }
-                        },
+                        }
                         x => {
                             println!("Couldn't get expression subjectentity: {:?}", x);
                             prolog_value_to_json_string(property_value.clone())
@@ -1263,8 +1260,6 @@ pub fn prolog_result(result: String) -> Value {
 }
 
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1287,7 +1282,7 @@ mod tests {
                 neighbourhood: None,
                 state: PerspectiveState::Private,
             },
-             None
+            None,
         )
     }
 
@@ -1377,7 +1372,7 @@ mod tests {
         // Add links with timestamps spread out by one minute intervals
         for i in 0..5 {
             let mut link = create_link();
-            link.target = format!("lang://test-target {}",i);
+            link.target = format!("lang://test-target {}", i);
             let mut link = create_signed_expression(link).expect("Failed to create link");
             link.timestamp = (now - chrono::Duration::minutes(5) + chrono::Duration::minutes(i as i64)).to_rfc3339();
             let expression = perspective.add_link_expression(LinkExpression::from(link.clone()), LinkStatus::Shared).await.unwrap();
@@ -1472,11 +1467,7 @@ mod tests {
         assert_eq!(links_date_desc[0].data.target, all_links[0].data.target);
         assert_eq!(links_date_desc[1].data.target, all_links[1].data.target);
         assert_eq!(links_date_desc[2].data.target, all_links[2].data.target);
-
-
-
     }
-
 
     // Additional tests for updateLink, removeLink, syncWithSharingAdapter, etc. would go here
     // following the same pattern as above.

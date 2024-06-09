@@ -1043,5 +1043,3 @@ fn can_handle_notifications() {
     assert!(notifications_after_removal.iter().all(|n| n.id != notification_id));
 }
 }
-
-
