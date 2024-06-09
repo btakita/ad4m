@@ -203,8 +203,6 @@ pub async fn handle_telepresence_signal_from_link_language_impl(signal: Perspect
 
 #[cfg(test)]
 mod tests {
-
-
     use super::*;
 
     fn setup() {
