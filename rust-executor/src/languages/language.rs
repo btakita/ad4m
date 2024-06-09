@@ -1,3 +1,5 @@
+use base64::engine::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use deno_core::error::AnyError;
 use crate::{graphql::graphql_types::{OnlineAgent, PerspectiveExpression}, js_core::JsCoreHandle, types::{Perspective, PerspectiveDiff}};
 use super::byte_array::ByteArray;
@@ -12,7 +14,7 @@ fn parse_revision(js_result: String) -> Result<Option<String>, AnyError> {
     if let Ok(maybe_revision) = serde_json::from_str::<Option<ByteArray>>(&js_result) {
         Ok(maybe_revision.map(|revision| {
             let vec: Vec<u8> = revision.into();
-            base64::encode(&vec)
+            BASE64.encode(&vec)
         }))
     } else {
         Ok(serde_json::from_str::<Option<String>>(&js_result)?)

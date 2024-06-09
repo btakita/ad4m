@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+use base64::engine::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use coasys_juniper::{graphql_object, FieldError, FieldResult, Value};
 use crate::{db::Ad4mDb, holochain_service::get_holochain_service, perspectives::{all_perspectives, get_perspective, utils::prolog_resolution_to_string}, runtime_service::RuntimeService, types::{DecoratedLinkExpression, Notification}};
 use crate::{agent::AgentService, entanglement_service::get_entanglement_proofs};
@@ -433,7 +435,7 @@ impl Query {
 
         let encoded_infos: Vec<String> = infos
             .iter()
-            .map(|info| base64::encode(info.encode().expect("Failed to encode AgentInfoSigned")))
+            .map(|info| BASE64.encode(info.encode().expect("Failed to encode AgentInfoSigned")))
             .collect();
 
         Ok(serde_json::to_string(&encoded_infos)?)
