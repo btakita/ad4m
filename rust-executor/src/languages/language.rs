@@ -30,14 +30,11 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).linksAdapter.sync() 
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.linksAdapter.sync()
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
         );
         let _result: String = self.js_core.execute(script).await?;
@@ -48,14 +45,11 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).linksAdapter.commit({}) 
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.linksAdapter.commit({})
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
             serde_json::to_string(&diff)?,
         );
@@ -67,14 +61,11 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).linksAdapter.currentRevision() 
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.linksAdapter.currentRevision()
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
         );
         let result: String = self.js_core.execute(script).await?;
@@ -85,14 +76,11 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).linksAdapter.render() 
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.linksAdapter.render()
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
         );
         let result: String = self.js_core.execute(script).await?;
@@ -104,14 +92,11 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).linksAdapter.others() 
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.linksAdapter.others()
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
         );
         let result: String = self.js_core.execute(script).await?;
@@ -123,16 +108,10 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    &&
-                    await (await core.languageController.languageByRef({{address:"{}"}})).telepresenceAdapter
-                    ? 
-                    true
-                    : 
-                    false
+                    !!(await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.telepresenceAdapter)
                 )
             "#,
-            self.address,
             self.address,
         );
         let result: String = self.js_core.execute(script).await?;
@@ -145,14 +124,11 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).telepresenceAdapter.setOnlineStatus({})
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.telepresenceAdapter.setOnlineStatus({})
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
             serde_json::to_string(&status)?,
         );
@@ -164,37 +140,31 @@ impl Language {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).telepresenceAdapter.getOnlineAgents()
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.telepresenceAdapter.getOnlineAgents()
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
         );
         let result: String = self.js_core.execute(script).await?;
         let online_agents = serde_json::from_str(&result)?;
         Ok(online_agents)
     }
-    
+
     pub async fn send_signal(
-        &mut self, 
-        remote_agent_did: String, 
+        &mut self,
+        remote_agent_did: String,
         payload: PerspectiveExpression
     ) -> Result<(), AnyError> {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).telepresenceAdapter.sendSignal("{}", {})
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.telepresenceAdapter.sendSignal("{}", {})
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
             remote_agent_did,
             serde_json::to_string(&payload)?,
@@ -204,28 +174,21 @@ impl Language {
     }
 
     pub async fn send_broadcast(
-        &mut self, 
+        &mut self,
         payload: PerspectiveExpression
     ) -> Result<(), AnyError> {
         let script = format!(
             r#"
                 JSON.stringify(
-                    await core.languageController.languageByRef({{address:"{}"}}) 
-                    ? 
-                    await (await core.languageController.languageByRef({{address:"{}"}})).telepresenceAdapter.sendBroadcast({})
-                    : 
-                    null
+                    await (await core.languageController.languageByRef({{address:"{}"}}))
+                        ?.telepresenceAdapter.sendBroadcast({})
+                    ?? null
                 )
             "#,
-            self.address,
             self.address,
             serde_json::to_string(&payload)?,
         );
         let _result: String = self.js_core.execute(script).await?;
         Ok(())
     }
-    
-
-
-
 }
