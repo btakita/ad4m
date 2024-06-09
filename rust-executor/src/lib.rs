@@ -54,7 +54,7 @@ pub async fn run(mut config: Ad4mConfig) -> JoinHandle<()> {
 
     AgentService::init_global_instance(
         config.app_data_path.clone().unwrap()
-    );
+    ).expect("Failed to initialize AgentService");
 
     RuntimeService::init_global_instance(
         std::path::Path::new(&config.app_data_path.clone().unwrap().to_string()).join("mainnet_seed.seed").to_string_lossy().into_owned()
@@ -65,7 +65,7 @@ pub async fn run(mut config: Ad4mConfig) -> JoinHandle<()> {
             .as_ref()
             .map(|path| std::path::Path::new(path).join("apps_data.json").to_string_lossy().into_owned())
             .expect("App data path not set in Ad4mConfig")
-        );
+    );
 
     if let Some(admin_credential) = &config.admin_credential {
         if admin_credential.is_empty() {
@@ -114,7 +114,7 @@ pub async fn run(mut config: Ad4mConfig) -> JoinHandle<()> {
             .unwrap();
         runtime.block_on(graphql::start_server(
             js_core_handle,
-            config
+            config,
         )).unwrap();
     })
 }
