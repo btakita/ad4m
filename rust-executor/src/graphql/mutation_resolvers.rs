@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
-use std::collections::HashMap;
-use crate::{db::Ad4mDb, types::Notification, perspectives::perspective_instance::{Command, Parameter, SubjectClass, SubjectClassOption}, runtime_service::{self, RuntimeService}};
-use ad4m_client::literal::Literal;
+use crate::{db::Ad4mDb, types::Notification, perspectives::perspective_instance::{Command, Parameter, SubjectClassOption}, runtime_service::RuntimeService};
 use crate::{agent::create_signed_expression, neighbourhoods::{self, install_neighbourhood}, perspectives::{add_perspective, get_perspective, perspective_instance::{PerspectiveInstance, SdnaType}, remove_perspective, update_perspective}, types::{DecoratedLinkExpression, Link, LinkExpression}};
 use coasys_juniper::{graphql_object, graphql_value, FieldResult, FieldError};
 

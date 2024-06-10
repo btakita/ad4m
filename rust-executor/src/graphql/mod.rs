@@ -6,7 +6,6 @@ mod subscription_resolvers;
 use graphql_types::RequestContext;
 use mutation_resolvers::*;
 use query_resolvers::*;
-use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 use subscription_resolvers::*;
 
 use crate::js_core::JsCoreHandle;
@@ -24,10 +23,6 @@ use coasys_juniper_graphql_transport_ws::ConnectionConfig;
 use coasys_juniper_warp::{playground_filter, subscriptions::serve_graphql_transport_ws};
 use warp::{http::Response, Filter};
 use std::path::Path;
-use tokio_rustls::rustls::ServerConfig;
-use tokio_rustls::TlsAcceptor;
-use std::fs::File;
-use std::io::BufReader;
 
 impl coasys_juniper::Context for RequestContext {}
 
@@ -155,6 +150,6 @@ pub async fn start_server(js_core_handle: JsCoreHandle, config: Ad4mConfig) -> R
             .await;
     }
 
-    
+
     Ok(())
 }

@@ -1,4 +1,4 @@
-use std::collections::{self, HashMap, BTreeMap};
+use std::collections::{HashMap, BTreeMap};
 use std::sync::Arc;
 use std::time::Duration;
 use serde_json::Value;
