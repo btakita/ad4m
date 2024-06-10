@@ -248,7 +248,7 @@ impl AgentService {
         let wallet_instance = Wallet::instance();
         let mut wallet = wallet_instance.lock().expect("wallet lock");
         let wallet_ref: &mut Wallet = wallet.as_mut().expect("wallet instance");
-        wallet_ref.unlock(password);
+        wallet_ref.unlock(password).expect("wallet_ref unlock");
 
         // TODO store agent proifle
 

@@ -109,7 +109,7 @@ impl Mutation {
     ) -> FieldResult<AgentStatus> {
         check_capability(&context.capabilities, &AGENT_CREATE_CAPABILITY)?;
         let agent = AgentService::with_mutable_global_instance(|agent_service| {
-            agent_service.create_new_keys();
+            agent_service.create_new_keys().expect("create_new_keys");
             agent_service.save(passphrase.clone());
 
             agent_service.dump().clone()
@@ -143,7 +143,7 @@ impl Mutation {
         passphrase: String,
     ) -> FieldResult<AgentStatus> {
         let agent = AgentService::with_global_instance(|agent_service| {
-            agent_service.lock(passphrase.clone());
+            agent_service.lock(passphrase.clone()).expect("agent_service lock");
 
             let agent = agent_service.dump().clone();
 
@@ -249,7 +249,7 @@ impl Mutation {
             let agent_service = agent_instance.lock().expect("agent lock");
             let agent_ref: &AgentService = agent_service.as_ref().expect("agent instance");
 
-            agent_ref.unlock(passphrase.clone());
+            agent_ref.unlock(passphrase.clone()).expect("agent_ref unlock");
         }
 
         if agent_instance.lock().expect("agent lock").as_ref().expect("agent instance").is_unlocked() {
@@ -939,7 +939,7 @@ impl Mutation {
         );
         let result = js.execute(script).await?;
         let result: JsResultType<Vec<String>> = serde_json::from_str(&result)?;
-        result.get_graphql_result();
+        result.get_graphql_result().expect("get_graphql_result");
 
         Ok(friends)
     }
